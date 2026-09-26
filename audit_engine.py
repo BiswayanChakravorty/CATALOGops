@@ -32,8 +32,13 @@ COLUMN_ALIASES = {
 
 
 def detect_columns(df: pd.DataFrame) -> Dict[str, Optional[str]]:
-    """Map this catalog's actual column names onto our canonical fields."""
-    lower_cols = {c.lower().strip(): c for c in df.columns}
+    """Map catalog columns onto canonical fields, ignoring case and outer whitespace.
+
+    Strip outer whitespace from headers first so returned column names also
+    match the DataFrame's actual labels. Alias matching remains case-insensitive.
+    """
+    df.columns = [str(column).strip() for column in df.columns]
+    lower_cols = {str(column).strip().lower(): column for column in df.columns}
     mapping = {}
     for canonical, aliases in COLUMN_ALIASES.items():
         found = None

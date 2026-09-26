@@ -2,7 +2,7 @@ name: CatalogOps tests
 
 on:
   push:
-    branches: [main, client-ready-mvp]
+    branches: [main, client-ready-mvp, main-mvp-v0.01]
   pull_request:
     branches: [main]
 

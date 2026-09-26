@@ -1,0 +1,23 @@
+name: CatalogOps tests
+
+on:
+  push:
+    branches: [main, client-ready-mvp]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Compile Python modules
+        run: python -m compileall -q app.py audit_engine.py report_generator.py tests
+      - name: Run regression tests
+        run: python -m unittest discover -s tests -v

@@ -19,18 +19,37 @@ const sample = [
 const norm=s=>String(s??"").trim().toLowerCase().replace(/[^a-z0-9]/g,"");
 const aliases={sku:["sku","skuid","variantsku","productsku","itemsku"],title:["title","producttitle","name","productname"],price:["price","variantprice","saleprice","cost"],category:["category","productcategory","type"],variant:["variant","variants","option1value","size","color"]};
 function mapping(headers){const out={};for(const [k,alts] of Object.entries(aliases)){out[k]=headers.find(h=>alts.includes(norm(h)))||null;}return out;}
+
+// Root-cause explanations - ported directly from audit_engine.py (ROOT_CAUSE_EXPLANATIONS)
+// so the web tool and the Python/report version stay in agreement.
+const ROOT_CAUSE_EXPLANATIONS={
+ duplicate_entries:"Duplicate SKUs usually mean the same product was created more than once — often because two systems (e.g. a POS and an online store) both generate product IDs independently, with nothing reconciling them.",
+ missing_fields:"Missing required fields typically happen when a product is created quickly (a bulk import, a rushed listing) and the required-fields check for that channel isn't enforced at creation time — the gap only surfaces later, at the point of failed import or listing rejection.",
+ title_inconsistency:"Repeated or near-identical titles usually mean the same product is maintained separately in more than one place (e.g. the online store and a marketplace feed) with no single source of truth — small edits drift apart over time.",
+ invalid_price:"Invalid prices usually come from a bulk import or spreadsheet formula that produced text, a currency symbol, or a blank instead of a clean number — the source system didn't validate the value before export."
+};
+const ROOT_CAUSE_LABELS={duplicate_entries:"Duplicate Entries",missing_fields:"Missing Fields",title_inconsistency:"Title Inconsistency",invalid_price:"Invalid Price"};
+
 function analyze(rows){
  const headers=Object.keys(rows[0]||{}), map=mapping(headers), findings=[];
- const add=(kind,row,detail,severity="Review")=>findings.push({id:findings.length+1,kind,sku:map.sku?String(row[map.sku]||"").trim():"",row:row.__row,detail,severity});
+ const add=(kind,row,detail,rootCause,severity="Review")=>findings.push({id:findings.length+1,kind,sku:map.sku?String(row[map.sku]||"").trim():"",row:row.__row,detail,severity,rootCause});
  const seen=new Map();
  rows.forEach((r,i)=>{r.__row=i+2;const sku=map.sku?String(r[map.sku]||"").trim():"";
-  if(map.sku&&!sku)add("Missing SKU",r,"SKU is blank.");
-  if(sku){if(seen.has(sku)){add("Duplicate SKU",r,"SKU appears more than once.");add("Duplicate SKU",rows[seen.get(sku)],"SKU appears more than once.");}else seen.set(sku,i);}
-  for(const key of ["title","price","category"]){if(map[key]&&!String(r[map[key]]??"").trim())add("Missing "+key[0].toUpperCase()+key.slice(1),r,key+" is blank.");}
-  if(map.price&&String(r[map.price]||"").trim()&&(!Number.isFinite(Number(String(r[map.price]).replace(/[$,₹£€]/g,"")))||Number(String(r[map.price]).replace(/[$,₹£€]/g,""))<0))add("Invalid price",r,"Price is not a valid non-negative number.");
+  if(map.sku&&!sku)add("Missing SKU",r,"SKU is blank.","missing_fields");
+  if(sku){if(seen.has(sku)){add("Duplicate SKU",r,"SKU appears more than once.","duplicate_entries");add("Duplicate SKU",rows[seen.get(sku)],"SKU appears more than once.","duplicate_entries");}else seen.set(sku,i);}
+  for(const key of ["title","price","category"]){if(map[key]&&!String(r[map[key]]??"").trim())add("Missing "+key[0].toUpperCase()+key.slice(1),r,key+" is blank.","missing_fields");}
+  if(map.price&&String(r[map.price]||"").trim()&&(!Number.isFinite(Number(String(r[map.price]).replace(/[$,₹£€]/g,"")))||Number(String(r[map.price]).replace(/[$,₹£€]/g,""))<0))add("Invalid price",r,"Price is not a valid non-negative number.","invalid_price");
  });
- if(map.title){const titles=new Map();rows.forEach(r=>{const t=String(r[map.title]||"").trim().toLowerCase().replace(/[^a-z0-9]+/g," ").trim();if(t){if(titles.has(t))add("Repeated title",r,"Exact normalized title is shared by another row.");else titles.set(t,r);}});}
- return {headers,map,findings};
+ if(map.title){const titles=new Map();rows.forEach(r=>{const t=String(r[map.title]||"").trim().toLowerCase().replace(/[^a-z0-9]+/g," ").trim();if(t){if(titles.has(t))add("Repeated title",r,"Exact normalized title is shared by another row.","title_inconsistency");else titles.set(t,r);}});}
+
+ // Group findings into root causes - same grouping approach as group_by_root_cause() in audit_engine.py
+ const rootCauses={};
+ for(const f of findings){
+   if(!f.rootCause) continue;
+   if(!rootCauses[f.rootCause]) rootCauses[f.rootCause]={tag:f.rootCause,label:ROOT_CAUSE_LABELS[f.rootCause]||f.rootCause,explanation:ROOT_CAUSE_EXPLANATIONS[f.rootCause]||"Pattern identified across multiple findings.",findings:[]};
+   rootCauses[f.rootCause].findings.push(f);
+ }
+ return {headers,map,findings,rootCauses:Object.values(rootCauses)};
 }
 function App(){
  const [rows,setRows]=useState(null),[filename,setFilename]=useState(""),[filter,setFilter]=useState("All issues"),[query,setQuery]=useState(""),[drag,setDrag]=useState(false);
@@ -56,7 +75,10 @@ function App(){
    <div className="results-card"><div className="results-head"><div><div className="eyebrow dark">AUDIT RESULTS</div><h3>Findings & review queue</h3><p>Rule-based signals for human review—not automatic catalog corrections.</p></div><div className="export-actions"><button className="btn subtle" onClick={exportIssues}><ArrowDownToLine size={15}/> Export CSV</button><button className="btn dark-btn" onClick={exportReport}><FileText size={15}/> Print / Save report</button></div></div>
    <div className="toolbar"><div className="search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search findings, SKU, or row..."/></div><div className="filter-wrap"><Filter size={15}/><select value={filter} onChange={e=>setFilter(e.target.value)}><option>All issues</option>{[...new Set(result.findings.map(f=>f.kind))].map(k=><option key={k}>{k}</option>)}</select><ChevronDown size={14}/></div></div>
    <div className="table-wrap"><table><thead><tr><th>ISSUE TYPE</th><th>SKU / IDENTIFIER</th><th>ROW</th><th>FINDING</th><th>STATUS</th></tr></thead><tbody>{visible.map(f=><tr key={f.id}><td><span className="issue-type"><span className="issue-dot"/> {f.kind}</span></td><td className="sku">{f.sku||"—"}</td><td className="row-num">{f.row}</td><td className="detail">{f.detail}</td><td><span className="review-badge">Review</span></td></tr>)}</tbody></table>{visible.length===0&&<div className="empty"><BadgeCheck size={22}/><b>No findings match this filter</b><span>Try a different search or issue type.</span></div>}</div><div className="table-foot">Showing {visible.length} of {result.findings.length} findings <span>•</span> {rows.length} rows analyzed</div></div>
-   <div className="disclaimer"><ShieldCheck size={17}/><span><b>Interpretation note</b> Findings are based on the checks included in this MVP. Review each flag against your source system before changing a live listing. A clean result does not guarantee a defect-free catalog.</span></div></>}
+   <div className="disclaimer"><ShieldCheck size={17}/><span><b>Interpretation note</b> Findings are based on the checks included in this MVP. Review each flag against your source system before changing a live listing. A clean result does not guarantee a defect-free catalog.</span></div>
+   {result.rootCauses.length>0&&<div className="root-causes"><div className="section-head" style={{padding:"0 0 14px 0"}}><div><div className="eyebrow dark">ROOT-CAUSE ANALYSIS</div><h3>Why these keep happening</h3><p>Findings above grouped into the underlying pattern — not just a symptom list.</p></div></div>
+    {result.rootCauses.map(rc=><div className="rc-block" key={rc.tag}><div className="rc-block-head"><b>{rc.label}</b><span className="rc-count">{rc.findings.length} related finding{rc.findings.length===1?"":"s"}</span></div><p className="rc-explain">{rc.explanation}</p></div>)}
+   </div>}</>}
    <section className="checks"><div className="eyebrow dark">AUDIT COVERAGE</div><h3>What this audit checks</h3><div className="check-grid"><div><span className="check-num">01</span><b>Duplicate SKUs</b><p>Repeated identifiers that may create catalog conflicts.</p></div><div><span className="check-num">02</span><b>Missing fields</b><p>Blank SKU, title, price, or category values where columns are detected.</p></div><div><span className="check-num">03</span><b>Repeated titles</b><p>Exact normalized title matches that may need a closer look.</p></div><div><span className="check-num">04</span><b>Price validation</b><p>Prices that are not valid non-negative numeric values.</p></div></div></section>
    <footer><span>© 2026 CATALOGops</span><span>Catalog quality workspace <b>·</b> MVP 0.1</span></footer>
   </main>

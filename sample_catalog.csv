@@ -1,0 +1,17 @@
+SKU,Title,Price,Category,Variant,Inventory
+TS-1001-BLK,Classic Cotton T-Shirt - Black,19.99,Apparel,Black,120
+TS-1001-WHT,Classic Cotton T-Shirt - White,19.99,Apparel,White,95
+TS-1001-RED,Classic Cotton T-Shirt,19.99,Apparel,,80
+TS-1002-BLK,Premium Hoodie - Black,49.99,Apparel,Black,40
+TS-1002-WHT,Premium Hoodie - White,49.99,Apparel,White,35
+MG-2001,Ceramic Coffee Mug,12.50,Home Goods,,200
+MG-2001,Ceramic Coffee Mug - 12oz,12.50,Home Goods,12oz,200
+BT-3001-S,Insulated Water Bottle - Small,15.00,Accessories,Small,150
+BT-3001-L,Insulated Water Bottle - Large,,Accessories,Large,90
+NB-4001,Leather Notebook,,,,60
+NB-4002,Leather Notebook Cover,22.00,Stationery,Standard,45
+CS-5001-BLK,Phone Case - Black,9.99,Accessories,Black,300
+CS-5001-BLU,Phone Case - Blue,9.99,Accessories,Blue,280
+CS-5002,Phone Cse Black Edition,9.99,Accessories,Black,50
+BG-6001,Canvas Tote Bag,14.00,Accessories,Standard,110
+BG-6002,Canvas Tote Bag - Large,18.00,Accessories,Large,70

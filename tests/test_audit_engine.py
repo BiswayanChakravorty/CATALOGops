@@ -1,5 +1,4 @@
 """Regression tests for the current CatalogOps audit rules."""
-import tempfile
 import unittest
 from pathlib import Path
 
@@ -42,7 +41,7 @@ class AuditEngineTests(unittest.TestCase):
         self.assertIn("missing_category", checks)
 
     def test_sample_catalog_runs_end_to_end(self):
-        sample = Path(__file__).with_name("sample_catalog.csv")
+        sample = Path(__file__).resolve().parents[1] / "sample_catalog.csv"
         result = run_audit(str(sample))
         self.assertGreater(result["row_count"], 0)
         self.assertGreater(result["flagged_count"], 0)

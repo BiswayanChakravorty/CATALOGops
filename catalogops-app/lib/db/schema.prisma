@@ -1,0 +1,45 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String?
+  email     String    @unique
+  catalogs  Catalog[]
+  createdAt DateTime  @default(now())
+}
+
+model Catalog {
+  id        String   @id @default(cuid())
+  userId    String
+  fileName  String
+  totalRows Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  audits    Audit[]
+  createdAt DateTime @default(now())
+}
+
+model Audit {
+  id            String    @id @default(cuid())
+  catalogId     String
+  rowsAnalyzed  Int
+  findingsCount Int
+  catalog       Catalog   @relation(fields: [catalogId], references: [id], onDelete: Cascade)
+  findings      Finding[]
+}
+
+model Finding {
+  id          String @id @default(cuid())
+  auditId     String
+  issueType   String
+  sku         String
+  rowNumber   Int
+  description String
+  audit       Audit  @relation(fields: [auditId], references: [id], onDelete: Cascade)
+}

@@ -67,9 +67,54 @@ function App(){
   </aside>
   <main className="main">
    <header className="topbar"><div><span className="crumb">Workspace</span><span className="slash">/</span><b>Catalog audit</b></div><div className="top-right"><span className="pilot"><i/> MVP WORKSPACE</span><div className="avatar">CO</div></div></header>
-   <section className="hero"><div className="hero-copy"><div className="eyebrow"><Sparkles size={14}/> CATALOG QUALITY • ROOT-CAUSE DIAGNOSTICS</div><h1>Find the errors.<br/><em>Understand why they recur.</em></h1><p>Audit product data, surface catalog issues, and organize findings into practical review groups—so your team can move from cleanup to a more reliable catalog process.</p><div className="hero-actions"><button className="btn gold-btn" onClick={()=>input.current?.click()}><Upload size={16}/> Upload catalog <span>CSV</span></button><button className="btn outline-btn" onClick={demo}>Explore sample audit <ArrowDownToLine size={15}/></button></div></div><div className="hero-art"><div className="orb orb1"/><div className="orb orb2"/><div className="art-card"><div className="art-top"><span className="dot"/> AUDIT OVERVIEW <span className="art-chip">LIVE PREVIEW</span></div><div className="art-score">92<span>/100</span></div><div className="score-label">CATALOG HEALTH SCORE <span>Illustrative</span></div><div className="bars"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></div><div className="art-foot"><span><b/> Data quality scan</span><span>Ready to review</span></div></div></div></section>
+   <section className="landing-hero">
+    <div className="landing-announcement"><Sparkles size={14}/> CATALOGops · PRODUCT CATALOG QUALITY</div>
+    <div className="landing-hero-grid">
+      <div className="landing-copy">
+        <div className="landing-kicker"><ShieldCheck size={15}/> CATALOG INTELLIGENCE FOR GROWING BRANDS</div>
+        <h1>Make your product catalog <span>work better.</span></h1>
+        <p>Find duplicate SKUs, missing product details, and inconsistent catalog data. Understand recurring issues and give your team a clearer path to review.</p>
+        <div className="landing-ctas">
+          <button className="btn landing-primary" onClick={()=>document.getElementById("audit-workspace")?.scrollIntoView({behavior:"smooth"})}>Start a free catalog audit <ArrowDownToLine size={16}/></button>
+          <button className="btn landing-secondary" onClick={demo}>Explore sample results</button>
+        </div>
+        <div className="landing-trust"><span><Check size={14}/> Browser-based CSV analysis</span><span><Check size={14}/> No account required</span><span><Check size={14}/> Review before making changes</span></div>
+      </div>
+      <div className="landing-visual">
+        <div className="landing-visual-label"><span className="visual-pulse"/> CATALOG AUDIT PREVIEW</div>
+        <div className="landing-visual-title">One catalog. A clearer picture.</div>
+        <div className="visual-stat-row"><div><small>Sample rows</small><b>1,240</b></div><div><small>Review flags</small><b className="visual-warn">38</b></div></div>
+        <div className="visual-bars"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></div>
+        <div className="visual-issue"><span className="visual-issue-dot"/> Duplicate SKU <b>12</b></div>
+        <div className="visual-issue"><span className="visual-issue-dot amber-dot"/> Missing fields <b>18</b></div>
+        <div className="visual-issue"><span className="visual-issue-dot blue-dot"/> Price validation <b>8</b></div>
+        <p className="visual-footnote">Illustrative preview · Actual findings depend on your uploaded file.</p>
+      </div>
+    </div>
+  </section>
+  <section className="pricing-section" id="pricing">
+    <div className="pricing-heading"><div className="eyebrow dark">STRAIGHTFORWARD PRICING</div><h2>Start free. Choose the audit that fits.</h2><p>Transparent, one-time audit pricing. No subscriptions or revenue-share fees.</p></div>
+    <div className="pricing-grid">
+      <article className="price-card">
+        <div className="price-tier">PILOT AUDIT</div><div className="price-amount">$0 <span>/ free</span></div><p className="price-description">Try the workflow with a small catalog sample.</p>
+        <ul><li><Check size={15}/> Up to 50 SKUs</li><li><Check size={15}/> Basic catalog checks</li><li><Check size={15}/> Sample findings summary</li></ul>
+        <button className="price-button price-button-light" onClick={()=>document.getElementById("audit-workspace")?.scrollIntoView({behavior:"smooth"})}>Run free audit <ArrowDownToLine size={15}/></button>
+      </article>
+      <article className="price-card price-featured">
+        <div className="price-badge">MOST POPULAR</div><div className="price-tier">GROWTH AUDIT</div><div className="price-amount">$99 <span>/ one-time</span></div><p className="price-description">For growing brands reviewing a larger catalog.</p>
+        <ul><li><Check size={15}/> Up to 1,000 SKUs</li><li><Check size={15}/> Root-cause grouping</li><li><Check size={15}/> Findings review queue</li><li><Check size={15}/> Exportable findings CSV</li></ul>
+        <button className="price-button price-button-primary" onClick={()=>document.getElementById("audit-workspace")?.scrollIntoView({behavior:"smooth"})}>Choose Growth <ArrowDownToLine size={15}/></button>
+      </article>
+      <article className="price-card">
+        <div className="price-tier">SCALE AUDIT</div><div className="price-amount">$249 <span>/ one-time</span></div><p className="price-description">For larger catalogs and multi-channel workflows.</p>
+        <ul><li><Check size={15}/> Up to 5,000 SKUs</li><li><Check size={15}/> Root-cause grouping</li><li><Check size={15}/> Multi-channel feed review</li><li><Check size={15}/> Priority review scope</li></ul>
+        <button className="price-button price-button-light" onClick={()=>document.getElementById("audit-workspace")?.scrollIntoView({behavior:"smooth"})}>Choose Scale <ArrowDownToLine size={15}/></button>
+      </article>
+    </div>
+    <p className="pricing-note">Pricing is displayed for plan selection. Online payment and paid-plan fulfillment are not connected in this MVP.</p>
+  </section>
    <input ref={input} type="file" accept=".csv,text/csv" hidden onChange={e=>load(e.target.files?.[0])}/>
-   <section className="section-head"><div><div className="eyebrow dark">AUDIT WORKSPACE</div><h2>Catalog overview</h2><p>Upload a catalog export or explore the sample data to see how the audit works.</p></div>{rows&&<button className="btn subtle" onClick={()=>{setRows(null);setFilename("");}}>Reset audit <X size={15}/></button>}</section>
+   <section className="section-head" id="audit-workspace"><div><div className="eyebrow dark">AUDIT WORKSPACE</div><h2>Catalog overview</h2><p>Upload a catalog export or explore the sample data to see how the audit works.</p></div>{rows&&<button className="btn subtle" onClick={()=>{setRows(null);setFilename("");}}>Reset audit <X size={15}/></button>}</section>
    {!rows?<div className={"upload-zone "+(drag?"drag":"")} onDragOver={e=>{e.preventDefault();setDrag(true)}} onDragLeave={()=>setDrag(false)} onDrop={e=>{e.preventDefault();setDrag(false);load(e.dataTransfer.files?.[0]);}}><div className="upload-icon"><FileSpreadsheet size={26}/></div><h3>Upload your product catalog</h3><p>Drag and drop a CSV file here, or browse from your device.</p><button className="btn dark-btn" onClick={()=>input.current?.click()}><ArrowUpFromLine size={16}/> Browse CSV file</button><div className="upload-meta">CSV format <span>·</span> Processed in your browser <span>·</span> No account required</div><div className="sample-link">Not ready? <button onClick={demo}>Run a sample audit <span>→</span></button></div></div>:<><div className="file-banner"><div className="file-icon"><FileSpreadsheet size={20}/></div><div className="file-info"><b>{filename}</b><span>{rows.length.toLocaleString()} rows · {result?.headers.length||0} columns detected</span></div><BadgeCheck size={18} className="file-check"/><button className="btn subtle" onClick={()=>input.current?.click()}>Replace file</button></div>
    <div className="metrics"><div className="metric"><span className="metric-icon blue"><FileSpreadsheet size={18}/></span><span className="metric-label">ROWS ANALYZED</span><strong>{rows.length.toLocaleString()}</strong><small>Product records</small></div><div className="metric"><span className="metric-icon red"><CircleAlert size={18}/></span><span className="metric-label">FINDINGS</span><strong>{result.findings.length.toLocaleString()}</strong><small>Items flagged for review</small></div><div className="metric"><span className="metric-icon amber"><Filter size={18}/></span><span className="metric-label">ISSUE TYPES</span><strong>{new Set(result.findings.map(f=>f.kind)).size}</strong><small>Distinct check categories</small></div><div className="metric"><span className="metric-icon green"><Check size={18}/></span><span className="metric-label">NO FLAGS</span><strong>{Math.max(0,rows.length-new Set(result.findings.map(f=>f.row)).size).toLocaleString()}</strong><small>Rows without detected flags</small></div></div>
    <div className="results-card"><div className="results-head"><div><div className="eyebrow dark">AUDIT RESULTS</div><h3>Findings & review queue</h3><p>Rule-based signals for human review—not automatic catalog corrections.</p></div><div className="export-actions"><button className="btn subtle" onClick={exportIssues}><ArrowDownToLine size={15}/> Export CSV</button><button className="btn dark-btn" onClick={exportReport}><FileText size={15}/> Print / Save report</button></div></div>
